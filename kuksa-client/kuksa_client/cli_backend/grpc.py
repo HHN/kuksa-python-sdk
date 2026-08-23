@@ -192,13 +192,14 @@ class Backend(cli_backend.Backend):
 
     def subscribeMultiple(self, paths: Iterable[str], callback, attribute="value", timeout=5):
         if attribute in self.AttrDict:
+            pathList = list(paths)
             field, view = self.AttrDict[attribute]
             entries = [
                 kuksa_client.grpc.SubscribeEntry(path=path, view=view, fields=(field,))
-                for path in paths
+                for path in pathList
             ]
             requestArgs = {
-                "paths": list(paths),
+                "paths": pathList,
                 "entries": entries,
                 "callback": callback_wrapper(callback),
             }

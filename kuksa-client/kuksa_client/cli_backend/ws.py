@@ -260,9 +260,10 @@ class Backend(cli_backend.Backend):
         return res
 
     def subscribeMultiple(self, paths, callback, attribute="value", timeout=5):
-        raise Exception("Not supported by VISSv2. "
-                        "Try using `subscribe` if you meant to use the "
-                        "`subscribe` function of VISSv2")
+        responses = []
+        for path in paths:
+            responses.append(json.loads(self.subscribe(path, callback, attribute, timeout)))
+        return json.dumps(responses[0] if len(responses) == 1 else responses)
 
     # Unsubscribe value changes of to a given path.
     # The subscription id from the response of the corresponding subscription request will be required

@@ -242,27 +242,13 @@ class TestClient(Cmd):
 
     ap_subscribe = Cmd2ArgumentParser()
     ap_subscribe.add_argument(
-        "Path", help="Path to subscribe to", completer=path_completer
-    )
-    ap_subscribe.add_argument(
-        "-a", "--attribute", help="Attribute to subscribe to", default="value"
-    )
-
-    ap_subscribe.add_argument(
-        "-f",
-        "--output-to-file",
-        help="Redirect the subscription output to file",
-        action="store_true",
-    )
-
-    ap_subscribeMultiple = Cmd2ArgumentParser()
-    ap_subscribeMultiple.add_argument(
         "Path", help="Path to subscribe to", nargs="+", completer=path_completer
     )
-    ap_subscribeMultiple.add_argument(
+    ap_subscribe.add_argument(
         "-a", "--attribute", help="Attribute to subscribe to", default="value"
     )
-    ap_subscribeMultiple.add_argument(
+
+    ap_subscribe.add_argument(
         "-f",
         "--output-to-file",
         help="Redirect the subscription output to file",
@@ -443,43 +429,18 @@ class TestClient(Cmd):
     @with_category(VSS_COMMANDS)
     @with_argparser(ap_subscribe)
     def do_subscribe(self, args):
-        """Subscribe the value of a path"""
-        if self.connection_established():
-            if args.output_to_file:
-                logPath = (
-                    pathlib.Path.cwd()
-                    / f"log_{args.Path.replace('/', '.')}_{args.attribute}_{str(time.time())}"
-                )
-                callback = functools.partial(self.subscribeCallback, logPath)
-            else:
-                callback = functools.partial(self.subscribeCallback, None)
-
-            resp = self.commThread.subscribe(args.Path, callback, args.attribute)
-            resJson = json.loads(resp)
-            if "subscriptionId" in resJson:
-                self.subscribeIds.add(resJson["subscriptionId"])
-                if args.output_to_file:
-                    logPath.touch()
-                    print(f"Subscription log available at {logPath}")
-            print(highlight(resp, lexers.JsonLexer(), formatters.TerminalFormatter()))
-        self.pathCompletionItems = []
-
-    @with_category(VSS_COMMANDS)
-    @with_argparser(ap_subscribeMultiple)
-    def do_subscribeMultiple(self, args):
         """Subscribe to updates of given paths"""
         if self.connection_established():
             if args.output_to_file:
                 logPath = (
                     pathlib.Path.cwd()
-                    / f"subscribeMultiple_{args.attribute}_{str(time.time())}.log"
+                    / f"log_{'_'.join(args.Path).replace('/', '.')}_{args.attribute}_{str(time.time())}"
                 )
                 callback = functools.partial(self.subscribeCallback, logPath)
             else:
                 callback = functools.partial(self.subscribeCallback, None)
-            resp = self.commThread.subscribeMultiple(
-                args.Path, callback, args.attribute
-            )
+
+            resp = self.commThread.subscribeMultiple(args.Path, callback, args.attribute)
             resJson = json.loads(resp)
             if "subscriptionId" in resJson:
                 self.subscribeIds.add(resJson["subscriptionId"])
@@ -591,8 +552,8 @@ class TestClient(Cmd):
 
         # Explain were we are connecting to:
         print(
-            f"Connecting to VSS server at {config['ip'] } port {config['port'] } \
-using {'KUKSA GRPC' if config['protocol'] == 'grpc' else 'VISS' } protocol."
+            f"Connecting to VSS server at {config['ip']} port {config['port']} \
+using {'KUKSA GRPC' if config['protocol'] == 'grpc' else 'VISS'} protocol."
         )
         print(f"TLS will {'not be' if config['insecure'] else 'be'} used.")
 

@@ -155,8 +155,7 @@ setTargetValue       Set the target value of a path
 setTargetValues      Set the target value of given paths
 setValue             Set the value of a path
 setValues            Set the value of given paths
-subscribe            Subscribe the value of a path
-subscribeMultiple    Subscribe to updates of given paths
+subscribe            Subscribe to updates of given paths
 unsubscribe          Unsubscribe an existing subscription
 updateMetaData       Update MetaData of a given path
 updateVSSTree        Update VSS Tree Entry

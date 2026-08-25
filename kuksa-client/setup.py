@@ -40,11 +40,12 @@ class GenerateProtosCommand(setuptools.Command):
     def run(self):
         import subprocess  # pylint: disable=import-outside-toplevel
         import os
+        import sys
         from pathlib import Path
 
         # Check if we're in an sdist build (proto files should already exist)
         proto_files_exist = any(Path('.').glob('**/*_pb2.py'))
-        proto_dir_exists = Path("../submodules/kuksa-proto/proto/").exists()
+        proto_dir_exists = Path("../submodules/kuksa-proto/kuksa/").exists()
 
         if proto_files_exist:
             print("Proto files already exist, skipping package tagging")
@@ -59,7 +60,7 @@ class GenerateProtosCommand(setuptools.Command):
             return
 
         print(f"Generating package from proto: {os.getcwd()}")
-        result = subprocess.call(['python', 'prototagandcopy.py'])
+        result = subprocess.call([sys.executable, 'prototagandcopy.py'])
         if result != 0:
             print(f"Warning: prototagandcopy.py failed with exit code {result}")
         # print("This is how it looks like:")
@@ -149,7 +150,7 @@ class BuildPyCommand(BuildGenerateProtos, BuildPackageProtos, build_py.build_py)
             if '__init__.py' in files:
                 package = root.replace('./', '').replace('/', '.').lstrip('.')
                 print(f"Found package: {package}")
-                if package and any(proto_name in package for proto_name in ['kuksa', 'sdv']):
+                if package and any(proto_name in package for proto_name in ['kuksa']):
                     # Skip build directories
                     if not package.startswith('build.'):
                         proto_packages.append(package)
@@ -163,8 +164,10 @@ class BuildPyCommand(BuildGenerateProtos, BuildPackageProtos, build_py.build_py)
         # Add proto packages
         all_packages = current_packages + [pkg for pkg in proto_packages if pkg not in current_packages]
 
-        # Update the distribution packages
+        # Update the distribution packages and the build_py packages
+        # (build_py uses its own `packages` attribute when copying files)
         self.distribution.packages = all_packages
+        self.packages = all_packages
         print(f"Final package list: {all_packages}")
 
 

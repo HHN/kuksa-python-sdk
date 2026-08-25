@@ -15,21 +15,24 @@ import shutil
 import os
 
 # this needs to be adapted once the submodules name or structure changes
-PROTO_PATH = os.path.abspath("../submodules/kuksa-proto/proto/")
+PROTO_PATH = os.path.abspath("../submodules/kuksa-proto/kuksa/")
 
 
 def main():
     '''
-    This will tag all proto folders as Python packages by creating an __init__.py file
-    in each subdirectory and then copy the proto files to the current working directory
+    This will copy the kuksa proto tree to the current working directory and tag all
+    folders as Python packages by creating an __init__.py file in each of them.
     '''
-    for root, dirs, files in os.walk(PROTO_PATH):
+    shutil.copytree(PROTO_PATH, os.path.join(os.getcwd(), "kuksa"), dirs_exist_ok=True)
+    for root, dirs, files in os.walk(os.path.join(os.getcwd(), "kuksa")):
         for directory in dirs:
             # Create an __init__.py file in each subdirectory
             init_file = os.path.join(root, directory, "__init__.py")
             with open(init_file, "w") as file:
                 file.write("# This file marks the directory as a Python module")
-    shutil.copytree(PROTO_PATH, os.getcwd(), dirs_exist_ok=True)
+    # The package root itself also needs an __init__.py
+    with open(os.path.join(os.getcwd(), "kuksa", "__init__.py"), "w") as file:
+        file.write("# This file marks the directory as a Python module")
 
 
 if __name__ == "__main__":

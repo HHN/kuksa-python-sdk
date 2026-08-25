@@ -270,10 +270,18 @@ class Backend(cli_backend.Backend):
                         subscriber_response_stream = vss_client.v2_subscribe(paths=paths)
                         resp = await subscriber_manager.add_subscriber(subscriber_response_stream, callback)
                     except kuksa_client.grpc.VSSClientError as exc:
-                        if exc.error["code"] != grpc.StatusCode.UNIMPLEMENTED.value[0]:
+                        if exc.error["code"] == grpc.StatusCode.NOT_FOUND.value[0]:
+                            logger.debug(
+                                "v2 Subscribe returned NOT_FOUND; expanding branch paths via ListMetadata"
+                            )
+                            expanded = await vss_client._expand_v2_branch_paths(paths)
+                            subscriber_response_stream = vss_client.v2_subscribe(paths=expanded)
+                            resp = await subscriber_manager.add_subscriber(subscriber_response_stream, callback)
+                        elif exc.error["code"] != grpc.StatusCode.UNIMPLEMENTED.value[0]:
                             raise
-                        subscriber_response_stream = vss_client.subscribe(entries=entries)
-                        resp = await subscriber_manager.add_subscriber(subscriber_response_stream, callback)
+                        else:
+                            subscriber_response_stream = vss_client.subscribe(entries=entries)
+                            resp = await subscriber_manager.add_subscriber(subscriber_response_stream, callback)
                     resp = {"subscriptionId": str(resp)}
                 elif call == "unsubscribe":
                     resp = await subscriber_manager.remove_subscriber(**requestArgs)

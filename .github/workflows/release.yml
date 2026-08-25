@@ -34,13 +34,13 @@ jobs:
 
     steps:
     - name: Checkout kuksa-python-sdk
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       with:
         submodules: 'true'
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
-        python-version: "3.11"
+        python-version: "3.14"
     - name: Install dependencies with pip
       run: |
         cd kuksa-client
@@ -58,7 +58,7 @@ jobs:
         packages-dir: kuksa-client/dist
     - name: Create draft release
       id: create_release
-      uses: softprops/action-gh-release@v2
+      uses: softprops/action-gh-release@v3
       with:
         draft: true
         name: KUKSA Python SDK ${{ github.ref_name }}
